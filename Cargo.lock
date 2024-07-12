@@ -35,7 +35,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "lib-genetic0algorithm"
+name = "lib-genetic-algorithm"
 version = "0.1.0"
 dependencies = [
  "rand",
