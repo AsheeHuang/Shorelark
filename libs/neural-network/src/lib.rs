@@ -10,19 +10,22 @@ impl Network {
 		Self { layers }
 	}
 
-	pub fn random(rng: &mut dyn RngCore, neurons_per_layer: Vec<usize>) -> Self {
-		assert!(neurons_per_layer.len() > 1);
+	pub fn random(rng: &mut dyn RngCore, layers: &[LayerTopology]) -> Self {
+		assert!(layers.len() > 1);
 		let mut built_layers = Vec::new();
 
-		for i in 0..neurons_per_layer.len() - 1 {
-			let input_size = neurons_per_layer[i];
-			let output_size = neurons_per_layer[i + 1];
+		for i in 0..(layers.len() - 1) {
+			let input_size = layers[i].neurons;
+			let output_size = layers[i + 1].neurons;
 
-			built_layers.push(Layer::random(rng, input_size, output_size));
+			built_layers.push(Layer::random(
+				rng,
+				input_size,
+				output_size,
+			));
 		}
 
-		Self {layers: built_layers}
-
+		Self { layers: built_layers }
 	}
 
 	pub fn propagate(&self, mut inputs: Vec<f32>) -> Vec<f32> {
@@ -31,9 +34,48 @@ impl Network {
 		}
 
 		inputs
-		// self.layers
-		// 	.iter()
-		// 	.fold(inputs, |inputs, layer| layer.propagate(inputs))
+	}
+
+	pub fn weights(&self) -> Vec<f32> {
+		let mut weights = Vec::new();
+
+		for layer in &self.layers {
+			for neuron in &layer.neurons {
+				weights.push(neuron.bias);
+
+				for weight in &neuron.weights {
+					weights.push(*weight);
+				}
+			}
+		}
+
+		weights
+	}
+
+	pub fn from_weights(
+		layers: &[LayerTopology],
+		weight: impl IntoIterator<Item = f32>,
+	) -> Self {
+		assert!(layers.len() > 1);
+
+		let mut weights = weight.into_iter();
+
+		let layers = layers
+			.windows(2)
+			.map(|layers| {
+				Layer::from_weights(
+					layers[0].neurons,
+					layers[1].neurons,
+					&mut weights,
+				)
+			})
+			.collect();
+		
+		if weights.next().is_some() {
+			panic!("got too many weights");
+		}
+
+		Self {layers}
 	}
 }
 
@@ -57,6 +99,18 @@ impl Layer {
 		for _ in 0..output_size {
 			neurons.push(Neuron::random(rng, input_size));
 		}
+		Self {neurons}
+	}
+
+	fn from_weights(
+		input_size: usize,
+		output_size: usize,
+		weights: &mut impl Iterator<Item = f32>,
+	) -> Self {
+		let neurons = (0..output_size)
+			.map(|_| Neuron::from_weights(input_size, weights))
+			.collect();
+
 		Self {neurons}
 	}
 
@@ -90,6 +144,24 @@ impl Neuron {
 
 		Self {bias, weights}
 	}
+
+	fn from_weights(
+		input_size: usize,
+		weights: &mut dyn Iterator<Item = f32>,
+	) -> Self {
+		let bias = weights.next().expect("got not enough weights");
+
+		let weights = (0..input_size)
+			.map(|_| weights.next().expect("got not enough weights"))
+			.collect();
+
+		Self { bias, weights }
+	}
+}
+
+#[derive(Debug)]
+pub struct LayerTopology {
+	pub neurons: usize,
 }
 
 #[cfg(test)]
@@ -116,4 +188,6 @@ mod tests {
 
 		assert_relative_eq!(neuron.propagate(&[-10.0, -10.0]), 0.0);
 		assert_relative_eq!(neuron.propagate(&[0.5, 1.0]), (0.5 * -0.3 + 1.0 * 0.8 + 0.5));
-	} }
+	} 
+	// TODO: test weight
+}

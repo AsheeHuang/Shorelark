@@ -173,6 +173,15 @@ impl FromIterator<f32> for Chromosome {
 	}
 }
 
+impl IntoIterator for Chromosome {
+	type Item = f32;
+	type IntoIter = std::vec::IntoIter<f32>;
+
+	fn into_iter(self) -> Self::IntoIter {
+		self.genes.into_iter()
+	}
+}
+
 #[cfg(test)]
 mod tests {
 	use super::*;
