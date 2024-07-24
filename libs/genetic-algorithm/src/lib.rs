@@ -6,6 +6,7 @@ pub struct GeneticAlgorithm<S> {
 	selection_method: S,
 	crossover_method: Box<dyn CrossoverMethod>,
 	mutation_method: Box<dyn MutationMethod>,
+	generation: usize,
 }
 
 impl<S> GeneticAlgorithm<S>
@@ -20,12 +21,14 @@ where
 			selection_method,
 			crossover_method: Box::new(crossover_method),
 			mutation_method: Box::new(mutation_method),
+			generation: 1,
 		}
 	}
-	pub fn evolve<I>(&self, rng: &mut dyn RngCore, population: &[I]) -> Vec<I>
+	pub fn evolve<I>(&mut self, rng: &mut dyn RngCore, population: &[I]) -> Vec<I>
 	where I: Individual
 	{
 		assert!(!population.is_empty());
+		self.generation += 1;
 		(0..population.len())
 			.map(|_| {
 				let parent_a = self.selection_method.select(rng, population).chromosome();
@@ -36,6 +39,10 @@ where
 				I::create(child)
 			})
 			.collect()
+	}
+
+	pub fn generation(&self) -> usize {
+		self.generation
 	}
 }
 
@@ -370,7 +377,7 @@ mod tests {
 			TestIndividual::create(gene.iter().cloned().collect())
 		}
 		let mut rng = ChaCha8Rng::from_seed(Default::default());
-		let ga = GeneticAlgorithm::new(
+		let mut ga = GeneticAlgorithm::new(
 			RouletteWheelSelection,
 			UniformCrossover,
 			GaussianMutation::new(0.5, 0.5),
@@ -397,5 +404,4 @@ mod tests {
 		assert_eq!(population, expect_population);
 
 	}
-
 }

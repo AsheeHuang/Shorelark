@@ -18,12 +18,12 @@ const SPEED_MAX: f32 = 0.005;
 const SPEED_ACCEL: f32 = 0.2;
 const ROTATION_ACCEL: f32 = FRAC_PI_2;
 
-const GENERATION_LENGTH: usize = 2500;
+const STEP_EACH_GENERATION: usize = 1000;
 
 pub struct Simulation {
 	world: World,
 	ga: ga::GeneticAlgorithm<ga::RouletteWheelSelection>,
-	age: usize,
+	pub age: usize,
 }
 
 impl Simulation {
@@ -33,7 +33,7 @@ impl Simulation {
 		let ga = ga::GeneticAlgorithm::new(
 			ga::RouletteWheelSelection,
 			ga::UniformCrossover,
-			ga::GaussianMutation::new(0.01, 0.3),
+			ga::GaussianMutation::new(0.005, 0.5),
 		);
 		Self {
 			world,
@@ -46,13 +46,25 @@ impl Simulation {
 		&self.world
 	}
 
+	pub fn age(&self) -> usize {
+		self.age
+	}
+
+	pub fn generation(&self) -> usize {
+		self.ga.generation()
+	}
+
+	pub fn is_last_run(&self) -> bool {
+		self.age == STEP_EACH_GENERATION - 1
+	}
+
 	pub fn step(&mut self, rng: &mut dyn RngCore) {
 		self.process_collision(rng);
 		self.process_brains();
 		self.process_movement();
 
 		self.age += 1;
-		if self.age >= GENERATION_LENGTH {
+		if self.age >= STEP_EACH_GENERATION {
 			self.age = 0;
 			self.evolve(rng);
 		}

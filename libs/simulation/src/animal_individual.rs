@@ -1,5 +1,3 @@
-use lib_genetic_algorithm::Chromosome;
-
 use crate::*;
 
 pub struct AnimalIndividual {

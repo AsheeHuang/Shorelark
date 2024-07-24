@@ -3,10 +3,6 @@ import * as sim from "lib-simulation-wasm"
 const simulation = new sim.Simulation();
 const world = simulation.world();
 
-for (const animal of world.animals) {
-  console.log(animal.x, animal.y, animal.rotation, animal.speed);
-}
-
 const viewport = document.getElementById("viewport");
 const viewportWidth = viewport.width;
 const viewportHeight = viewport.height;
@@ -19,7 +15,6 @@ viewport.style.height = viewportHeight + "px";
 
 const ctxt = viewport.getContext("2d");
 ctxt.scale(viewportScale, viewportScale);
-
 
 function drawTriangle(ctxt, x, y, size, rotation) {
   ctxt.beginPath();
@@ -46,8 +41,18 @@ function drawCircle(ctxt, x, y, radius) {
 
 function redraw() {
   ctxt.clearRect(0, 0, viewportWidth, viewportHeight);
-  simulation.step();
   const world = simulation.world();
+  if (simulation.is_last_run()) {
+    let avg_fitness = 0;
+    let max_fitness = 0;
+    for (const animal of world.animals) {
+      avg_fitness += animal.fitness;
+      max_fitness = Math.max(max_fitness, animal.fitness);
+    }
+    avg_fitness /= world.animals.length;
+    console.log(`Generation ${simulation.generation()} - Average fitness: ${avg_fitness}, Max fitness: ${max_fitness}`);
+  }
+  simulation.step();
 
   for (const food of world.foods) {
     drawCircle(
@@ -68,8 +73,8 @@ function redraw() {
     );
   }
 
-
   requestAnimationFrame(redraw);
 }
 
+console.log("Starting shorelark");
 redraw();

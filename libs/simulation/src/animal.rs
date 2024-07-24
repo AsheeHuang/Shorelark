@@ -57,4 +57,8 @@ impl Animal {
 		self.speed
 	}
 
+	pub fn fitness(&self) -> usize {
+		self.satiation
+	}
+
 }

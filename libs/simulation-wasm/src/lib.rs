@@ -25,6 +25,14 @@ impl Simulation {
 	pub fn step(&mut self) {
 		self.sim.step(&mut self.rng);
 	}
+
+	pub fn generation(&self) -> usize {
+		self.sim.generation()
+	}
+
+	pub fn is_last_run(&self) -> bool{
+		self.sim.is_last_run()
+	}
 }
 
 impl From<&sim::World> for World {
@@ -42,6 +50,7 @@ impl From<&sim::Animal> for Animal {
 			x: animal.position().x,
 			y: animal.position().y,
 			rotation: animal.rotation().angle(),
+			fitness: animal.fitness(),
 		}
 	}
 }
@@ -63,13 +72,13 @@ pub struct World {
 	pub foods: Vec<Food>,
 }
 
-
 #[wasm_bindgen]
 #[derive(Clone, Debug, Copy)]
 pub struct Animal {
 	pub x: f32,
 	pub y: f32,
 	pub rotation: f32,
+	pub fitness: usize
 }
 
 #[wasm_bindgen]
