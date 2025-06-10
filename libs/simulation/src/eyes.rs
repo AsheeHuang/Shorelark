@@ -18,12 +18,12 @@ pub struct Eye {
 }
 
 impl Eye {
-	fn new (fov_range: f32, fov_angle: f32, cells: usize) -> Self {
-		assert!(fov_angle > 0.0);
-		assert!(fov_angle > 0.0);
-		assert!(cells > 0);
-		Self {fov_range, fov_angle, cells}
-	}
+        fn new (fov_range: f32, fov_angle: f32, cells: usize) -> Self {
+                assert!(fov_range > 0.0);
+                assert!(fov_angle > 0.0);
+                assert!(cells > 0);
+                Self {fov_range, fov_angle, cells}
+        }
 
 	pub fn cells(&self) -> usize {
 		self.cells
@@ -51,9 +51,9 @@ impl Eye {
 
 			let angle = angle - rotation.angle();
 			let angle = na::wrap(angle, -PI, PI);
-			if angle < -self.fov_angle / 2.0 || angle < self.fov_angle / 2.0 {
-				continue;
-			}
+                        if angle < -self.fov_angle / 2.0 || angle > self.fov_angle / 2.0 {
+                                continue;
+                        }
 
 			let angle = angle + self.fov_angle / 2.0;
 			let cell = angle / self.fov_angle;
